@@ -17,7 +17,7 @@
   let currentCategory = 'all';
   let searchQuery = '';
   let hardOnly = false;
-  let quizScope = 'all';
+  let quizScope = 'rolls';
   let activeTab = 'catalog';
   let quizPool = [];
   let quizCurrent = null;
@@ -206,8 +206,13 @@
       if (!data.items || !Array.isArray(data.items)) {
         throw new Error('Неверный формат меню');
       }
-      // Drop half portions even if the source dataset contains them.
-      allItems = data.items.filter(i => !/^1\/2\s/i.test(i.name || '') && !/ПОЛОВИН/i.test(i.name || ''));
+      // Keep only rolls and sets, excluding half-portions even if present upstream.
+      allItems = data.items.filter(i => {
+        const name = i.name || '';
+        const category = i.category || '';
+        const isRollOrSet = /ролл/i.test(category) || (/сет/i.test(category) && !/сезон/i.test(category));
+        return isRollOrSet && !/^1\/2\s/i.test(name) && !/ПОЛОВИН/i.test(name);
+      });
       categories = [...new Set(allItems.map(i => i.category))].sort();
       loadState();
       init();
