@@ -73,6 +73,8 @@
     els.setDetailTitle = document.getElementById('set-detail-title');
     els.setDetailImage = document.getElementById('set-detail-image');
     els.setDetailRolls = document.getElementById('set-detail-rolls');
+    els.setDetailEmpty = document.getElementById('set-detail-empty');
+    els.setDetailContent = document.getElementById('set-detail-content');
     els.backToSets = document.getElementById('back-to-sets');
 
     // Announcer
@@ -281,6 +283,14 @@
     // Retry loading
     els.retryBtn.addEventListener('click', loadMenu);
 
+    // Open set cards via delegation so clicks also work after rerendering.
+    if (els.setsList) {
+      els.setsList.addEventListener('click', (event) => {
+        const button = event.target.closest('[data-open-id]');
+        if (button && els.setsList.contains(button)) openSetDetail(button.dataset.openId);
+      });
+    }
+
     // Quiz scope filters
     els.quizFilters.forEach(btn => btn.addEventListener('click', () => {
       quizScope = btn.dataset.quizScope;
@@ -412,14 +422,11 @@
       </article>`;
     }).join('');
 
-    els.setsList.querySelectorAll('[data-open-id]').forEach(button => {
-      button.addEventListener('click', () => openSetDetail(button.dataset.openId));
-    });
   }
 
   function openSetDetail(setId) {
-    const set = allItems.find(item => item.id === setId);
-    if (!set || !els.setDetail) return;
+    const set = allItems.find(item => item.id === setId || String(item.id) === String(setId));
+    if (!set || !els.setDetail || !els.setDetailTitle || !els.setsView) return;
     const rolls = getSetRolls(set);
     const image = safeImagePath(set.image);
     els.setDetailTitle.textContent = set.name;
