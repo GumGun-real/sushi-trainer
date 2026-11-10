@@ -61,8 +61,19 @@
 
     // Toolbar
     els.catalogTab = document.getElementById('catalog-tab');
+    els.setsTab = document.getElementById('sets-tab');
     els.quizTab = document.getElementById('quiz-tab');
     els.hardOnlyToggle = document.getElementById('hard-only');
+
+    // Sections
+    els.setsView = document.getElementById('sets-view');
+    els.setsList = document.getElementById('sets-list');
+    els.setsCount = document.getElementById('sets-count');
+    els.setDetail = document.getElementById('set-detail');
+    els.setDetailTitle = document.getElementById('set-detail-title');
+    els.setDetailImage = document.getElementById('set-detail-image');
+    els.setDetailRolls = document.getElementById('set-detail-rolls');
+    els.backToSets = document.getElementById('back-to-sets');
 
     // Announcer
     els.announcement = document.getElementById('announcement');
@@ -217,6 +228,7 @@
     bindEvents();
     renderCategories();
     renderCatalog();
+    renderSets();
     updateDashboard();
     renderQuiz();
     els.loading.hidden = true;
@@ -227,7 +239,14 @@
   function bindEvents() {
     // Tabs
     els.catalogTab.addEventListener('click', () => switchTab('catalog'));
+    els.setsTab && els.setsTab.addEventListener('click', () => switchTab('sets'));
     els.quizTab.addEventListener('click', () => switchTab('quiz'));
+
+    // Set detail navigation
+    els.backToSets && els.backToSets.addEventListener('click', () => {
+      switchTab('sets');
+      announce('Возврат к списку сетов');
+    });
 
     // Search
     els.search.addEventListener('input', debounce(() => {
@@ -286,14 +305,22 @@
   function switchTab(tab) {
     activeTab = tab;
     els.catalogTab.classList.toggle('active', tab === 'catalog');
+    els.setsTab && els.setsTab.classList.toggle('active', tab === 'sets');
     els.quizTab.classList.toggle('active', tab === 'quiz');
     els.catalogTab.setAttribute('aria-pressed', tab === 'catalog');
+    els.setsTab && els.setsTab.setAttribute('aria-pressed', tab === 'sets');
     els.quizTab.setAttribute('aria-pressed', tab === 'quiz');
     els.catalog.hidden = tab !== 'catalog';
+    els.setsView && (els.setsView.hidden = tab !== 'sets' || Boolean(els.setDetail && els.setDetail.dataset.open === 'true'));
+    if (els.setDetail) els.setDetail.hidden = tab !== 'sets' || els.setDetail.dataset.open !== 'true';
     els.quiz.hidden = tab !== 'quiz';
+
     if (tab === 'quiz') {
       renderQuiz();
-      announce('Режим теста. Угадайте блюдо по фото.');
+      announce('Режим теста. Угадайте блюдо по ингредиентам.');
+    } else if (tab === 'sets') {
+      renderSets();
+      announce('Режим сетов. Нажмите на сет, чтобы увидеть состав.');
     } else {
       announce('Каталог блюд');
     }
@@ -331,6 +358,118 @@
     currentCategory = cat;
     renderCategories();
     renderCatalog();
+  }
+
+  // ===== SETS =====
+  function getSetRolls(item) {
+    const text = String(item.description || '');
+    const lines = text.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+    let source = '';
+
+    // Set descriptions usually have a separate line beginning with 🥢.
+    for (const line of lines) {
+      const marker = line.indexOf('🥢');
+      if (marker >= 0) {
+        source = line.slice(marker + 2).trim();
+        break;
+      }
+    }
+    if (!source) source = lines.join(', ');
+    source = source.replace(/^\d+\s*шт\.?\s*/i, '');
+
+    // Split on commas/semicolons, and normalize inconsistent spacing/counts.
+    return source.split(/[,;]+/).map(part => part
+      .replace(/[🍱🍣🥢🔥🍤]/g, '')
+      .replace(/^\s*\d+\s*шт\.?\s*/i, '')
+      .replace(/[.;]+$/, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+    ).filter(part => part && !/^\d+\s*шт\.?$/i.test(part));
+  }
+
+  function renderSets() {
+    if (!els.setsList || !els.setsCount) return;
+    const sets = allItems.filter(item => /сет/i.test(item.category || '') && !/сезон/i.test(item.category || '') && getSetRolls(item).length);
+    els.setsCount.textContent = sets.length + ' сетов';
+    els.setsList.innerHTML = sets.map(item => {
+      const rolls = getSetRolls(item);
+      const image = safeImagePath(item.image);
+      return `<article class="card set-card">
+        ${image ? `<img class="card-image set-thumb" src="${escapeHtml(image)}" alt="" loading="lazy">` : ''}
+        <div class="card-body">
+          <div class="card-meta"><span class="card-category">Сет</span><span>${rolls.length} роллов${item.weight ? ' · ' + escapeHtml(item.weight) : ''}</span></div>
+          <h3>${escapeHtml(item.name)}</h3>
+          ${item.price ? `<p class="card-details">${escapeHtml(formatPrice(item.price))}</p>` : ''}
+          <div class="card-actions">
+            <button type="button" class="set-open" data-open-id="${escapeHtml(item.id)}">Открыть состав</button>
+          </div>
+        </div>
+      </article>`;
+    }).join('');
+
+    els.setsList.querySelectorAll('[data-open-id]').forEach(button => {
+      button.addEventListener('click', () => openSetDetail(button.dataset.openId));
+    });
+  }
+
+  function openSetDetail(setId) {
+    const set = allItems.find(item => item.id === setId);
+    if (!set || !els.setDetail) return;
+    const rolls = getSetRolls(set);
+    const image = safeImagePath(set.image);
+    els.setDetailTitle.textContent = set.name;
+    els.setDetailTitle.setAttribute('aria-label', set.name);
+    if (image) {
+      els.setDetailImage.src = image;
+      els.setDetailImage.alt = 'Фото: ' + set.name;
+      els.setDetailImage.hidden = false;
+    } else {
+      els.setDetailImage.removeAttribute('src');
+      els.setDetailImage.hidden = true;
+    }
+    if (!rolls.length) {
+      els.setDetailEmpty.hidden = false;
+      els.setDetailRolls.innerHTML = '';
+      els.setDetailRolls.hidden = true;
+    } else {
+      els.setDetailEmpty.hidden = true;
+      els.setDetailRolls.hidden = false;
+      els.setDetailRolls.innerHTML = rolls.map(roll => `<li class="set-detail-roll">${escapeHtml(roll)}</li>`).join('');
+    }
+    els.setDetail.dataset.open = 'true';
+    els.setDetail.hidden = false;
+    els.setsView.hidden = true;
+    announce('Состав сета «' + set.name + '»');
+    document.getElementById('main').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function startSetQuiz(setId) {
+    const set = allItems.find(item => item.id === setId);
+    if (!set) return;
+    quizScope = 'sets';
+    quizPool = [set];
+    quizStats = { correct: 0, total: 0 };
+    activeTab = 'quiz';
+    els.catalog.hidden = true;
+    els.setsView.hidden = true;
+    els.quiz.hidden = false;
+    els.catalogTab.classList.remove('active');
+    els.setsTab.classList.remove('active');
+    els.quizTab.classList.add('active');
+    els.catalogTab.setAttribute('aria-pressed', 'false');
+    els.setsTab.setAttribute('aria-pressed', 'false');
+    els.quizTab.setAttribute('aria-pressed', 'true');
+    els.quizFilters.forEach(filter => {
+      const active = filter.dataset.quizScope === 'sets';
+      filter.classList.toggle('active', active);
+      filter.setAttribute('aria-pressed', String(active));
+    });
+    els.quizScore.textContent = '0 / 0';
+    els.quizContent.hidden = false;
+    els.quizEmpty.hidden = true;
+    nextQuizQuestion();
+    document.getElementById('main').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    announce('Тренировка по сету «' + set.name + '». Угадайте роллы по составу.');
   }
 
   // ===== CATALOG =====
@@ -461,7 +600,7 @@
     let items = allItems.filter(i => i.image); // Only items with images
 
     if (quizScope === 'sets') {
-      items = items.filter(i => /сет/i.test(i.category || ''));
+      items = items.filter(i => /сет/i.test(i.category || '') && !/сезон/i.test(i.category || '') && getSetRolls(i).length);
     } else if (quizScope === 'rolls') {
       items = items.filter(i => /ролл/i.test(i.category || ''));
     } else if (quizScope === 'studied') {

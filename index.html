@@ -30,7 +30,7 @@
     </section>
     <p id="storage-notice" class="notice" role="status" hidden></p>
     <div class="toolbar">
-      <div class="tabs" role="group" aria-label="Режим обучения"><button id="catalog-tab" class="tab active" type="button" aria-pressed="true">Каталог</button><button id="quiz-tab" class="tab" type="button" aria-pressed="false">Тренировка по составу <span aria-hidden="true">↗</span></button></div>
+      <div class="tabs" role="group" aria-label="Режим обучения"><button id="catalog-tab" class="tab active" type="button" aria-pressed="true">Каталог</button><button id="sets-tab" class="tab" type="button" aria-pressed="false">Сеты</button><button id="quiz-tab" class="tab" type="button" aria-pressed="false">Тренировка по составу <span aria-hidden="true">↗</span></button></div>
       <label class="toggle"><input id="hard-only" type="checkbox"><span>Только трудные</span></label>
     </div>
     <section id="loading" class="empty" role="status">Загружаем меню…</section>
@@ -40,6 +40,19 @@
       <div id="categories" class="categories" role="group" aria-label="Категории"></div>
       <div id="cards" class="cards"></div>
       <p id="catalog-empty" class="empty" hidden>Ничего не найдено. Попробуйте другой запрос, категорию или выключите «Только трудные».</p>
+    </section>
+    <section id="sets-view" aria-labelledby="sets-title" hidden>
+      <div class="section-heading"><div><p class="eyebrow">УЧИ СОСТАВЫ СЕТОВ</p><h2 id="sets-title">Сеты и роллы в них</h2></div><span id="sets-count" class="muted"></span></div>
+      <p class="muted sets-intro">Нажми на сет, чтобы увидеть его состав. Половинки сетов скрыты — учим полные наборы.</p>
+      <div id="sets-list" class="sets-list"></div>
+    </section>
+    <section id="set-detail" aria-labelledby="set-detail-title" hidden>
+      <div class="section-heading"><button id="back-to-sets" class="text-button" type="button" aria-label="Назад к сетам">← Назад к сетам</button><div><p class="eyebrow">СОСТАВ СЕТА</p><h2 id="set-detail-title"></h2></div></div>
+      <img id="set-detail-image" class="set-detail-image" alt="" hidden>
+      <p id="set-detail-empty" class="empty" hidden></p>
+      <div id="set-detail-content" class="set-detail-content">
+        <ul class="set-detail-rolls" id="set-detail-rolls"></ul>
+      </div>
     </section>
     <section id="quiz" aria-labelledby="quiz-title" hidden>
       <div class="section-heading"><div><p class="eyebrow">ТРЕНИРОВКА ПО СОСТАВУ</p><h2 id="quiz-title">Угадай блюдо по ингредиентам</h2></div><span id="quiz-score" class="muted"></span></div>
