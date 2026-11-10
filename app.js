@@ -17,6 +17,7 @@
   let currentCategory = 'all';
   let searchQuery = '';
   let hardOnly = false;
+  let quizScope = 'all';
   let activeTab = 'catalog';
   let quizPool = [];
   let quizCurrent = null;
@@ -47,6 +48,7 @@
     els.quizFeedback = document.getElementById('quiz-feedback');
     els.nextBtn = document.getElementById('next');
     els.quizScore = document.getElementById('quiz-score');
+    els.quizFilters = document.querySelectorAll('[data-quiz-scope]');
 
     // Dashboard
     els.knownCount = document.getElementById('known-count');
@@ -160,6 +162,9 @@
 
   // ===== DATA LOADING =====
   async function loadMenu() {
+    // Cache the elements before the first load; otherwise the initial request
+    // can fail before init() has populated els.loading/els.error.
+    cacheElements();
     els.loading.hidden = false;
     els.error.hidden = true;
     els.catalog.hidden = true;
@@ -174,7 +179,8 @@
       if (!data.items || !Array.isArray(data.items)) {
         throw new Error('Неверный формат меню');
       }
-      allItems = data.items;
+      // Drop half portions even if the source dataset contains them.
+      allItems = data.items.filter(i => !/^1\/2\s/i.test(i.name || '') && !/ПОЛОВИН/i.test(i.name || ''));
       categories = [...new Set(allItems.map(i => i.category))].sort();
       loadState();
       init();
@@ -234,6 +240,17 @@
 
     // Retry loading
     els.retryBtn.addEventListener('click', loadMenu);
+
+    // Quiz scope filters
+    els.quizFilters.forEach(btn => btn.addEventListener('click', () => {
+      quizScope = btn.dataset.quizScope;
+      els.quizFilters.forEach(filter => {
+        const selected = filter === btn;
+        filter.classList.toggle('active', selected);
+        filter.setAttribute('aria-pressed', String(selected));
+      });
+      if (activeTab === 'quiz') renderQuiz();
+    }));
 
     // Quiz next
     els.nextBtn.addEventListener('click', nextQuizQuestion);
@@ -427,7 +444,15 @@
   function getQuizPool() {
     let items = allItems.filter(i => i.image); // Only items with images
 
-    if (hardOnly) {
+    if (quizScope === 'sets') {
+      items = items.filter(i => /сет/i.test(i.category || ''));
+    } else if (quizScope === 'rolls') {
+      items = items.filter(i => /ролл/i.test(i.category || ''));
+    } else if (quizScope === 'studied') {
+      items = items.filter(i => state.known.includes(i.id));
+    } else if (quizScope === 'hard') {
+      items = items.filter(i => state.hard.includes(i.id));
+    } else if (hardOnly) {
       items = items.filter(i => state.hard.includes(i.id));
     }
 
@@ -443,9 +468,13 @@
     if (quizPool.length === 0) {
       els.quizContent.hidden = true;
       els.quizEmpty.hidden = false;
-      els.quizEmpty.textContent = hardOnly
-        ? 'В «Повторить» пока нет блюд с фото. Добавьте их в каталоге.'
-        : 'Нет блюд с фото для теста.';
+      const messages = {
+        hard: 'В «Повторить» пока нет блюд с фото. Добавьте их в каталоге.',
+        studied: 'В «Знаю» пока нет блюд с фото. Отметьте их в каталоге.',
+        sets: 'В сетах нет блюд с фото.',
+        rolls: 'В роллах нет блюд с фото.'
+      };
+      els.quizEmpty.textContent = messages[quizScope] || 'Нет блюд с фото для теста.';
       return;
     }
 

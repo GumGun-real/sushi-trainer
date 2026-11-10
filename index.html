@@ -42,6 +42,7 @@
     </section>
     <section id="quiz" aria-labelledby="quiz-title" hidden>
       <div class="section-heading"><div><p class="eyebrow">ПРОВЕРЬТЕ СЕБЯ</p><h2 id="quiz-title">Что на фотографии?</h2></div><span id="quiz-score" class="muted"></span></div>
+       <div class="quiz-filters" role="group" aria-label="Что проверять"><span class="quiz-filter-label">Проверять:</span><button type="button" class="quiz-filter active" data-quiz-scope="all" aria-pressed="true">Всё меню</button><button type="button" class="quiz-filter" data-quiz-scope="rolls" aria-pressed="false">Только роллы</button><button type="button" class="quiz-filter" data-quiz-scope="sets" aria-pressed="false">Только сеты</button><button type="button" class="quiz-filter" data-quiz-scope="studied" aria-pressed="false">Знаю</button><button type="button" class="quiz-filter" data-quiz-scope="hard" aria-pressed="false">Повторить</button></div>
       <p id="quiz-empty" class="empty" hidden></p>
       <div id="quiz-content" class="quiz-layout"><div class="quiz-photo"><img id="quiz-image" alt="Блюдо, название которого нужно угадать"></div><div class="quiz-panel"><p class="muted">Выберите одно название</p><div id="answers" class="answers"></div><p id="quiz-feedback" class="feedback" role="status" aria-live="polite"></p><button id="next" class="primary" type="button" hidden>Следующее блюдо →</button></div></div>
     </section>
