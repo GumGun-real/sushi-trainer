@@ -43,7 +43,8 @@
     els.quiz = document.getElementById('quiz');
     els.quizEmpty = document.getElementById('quiz-empty');
     els.quizContent = document.getElementById('quiz-content');
-    els.quizImage = document.getElementById('quiz-image');
+    els.quizIngredientsTitle = document.getElementById('quiz-ingredients-title');
+    els.quizIngredientsList = document.getElementById('quiz-ingredients-list');
     els.answers = document.getElementById('answers');
     els.quizFeedback = document.getElementById('quiz-feedback');
     els.nextBtn = document.getElementById('next');
@@ -147,17 +148,32 @@
   }
 
   function parseIngredients(description) {
-    // Extract ingredients from description after emoji lines
-    const lines = description.split('\n');
-    const ingredients = [];
+    const text = String(description || '');
+    // Обычные роллы в меню часто описаны одной строкой: «🍣 8 шт. Рис, нори…».
+    // В сетах есть отдельная строка с количеством и строка с набором роллов.
+    const lines = text.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+    const result = [];
+
     for (const line of lines) {
-      if (line.startsWith('🥢') || line.startsWith('🍣')) {
-        // Remove emoji and split by commas
-        const parts = line.slice(2).split(',').map(s => s.trim()).filter(Boolean);
-        ingredients.push(...parts);
-      }
+      const markers = ['🍣', '🍱', '🔥', '🍤', '🥢'];
+      const markerAt = markers.reduce((found, marker) => {
+        const index = line.indexOf(marker);
+        return index >= 0 && (found < 0 || index < found) ? index : found;
+      }, -1);
+      let content = markerAt >= 0 ? line.slice(markerAt + 2).trim() : line;
+      if (!content) continue;
+
+      // Strip the leading piece count, but keep ingredient quantities and names intact.
+      content = content.replace(/^\d+\s*шт\.?\s*/i, '');
+      if (!content) continue;
+
+      // Avoid treating a set's piece count line as an ingredient.
+      if (/^\d+\s*шт\.?$/i.test(content)) continue;
+      const parts = content.split(/,\s*/).map(part => part.replace(/[.;]+$/, '').trim()).filter(Boolean);
+      result.push(...parts);
     }
-    return ingredients;
+
+    return result;
   }
 
   // ===== DATA LOADING =====
@@ -452,7 +468,11 @@
       items = items.filter(i => state.known.includes(i.id));
     } else if (quizScope === 'hard') {
       items = items.filter(i => state.hard.includes(i.id));
-    } else if (hardOnly) {
+    }
+
+    // The training tab has explicit pools above; the shared toolbar checkbox
+    // applies only when the pool is “all” for backwards compatibility.
+    if (quizScope === 'all' && hardOnly) {
       items = items.filter(i => state.hard.includes(i.id));
     }
 
@@ -469,12 +489,12 @@
       els.quizContent.hidden = true;
       els.quizEmpty.hidden = false;
       const messages = {
-        hard: 'В «Повторить» пока нет блюд с фото. Добавьте их в каталоге.',
-        studied: 'В «Знаю» пока нет блюд с фото. Отметьте их в каталоге.',
-        sets: 'В сетах нет блюд с фото.',
-        rolls: 'В роллах нет блюд с фото.'
+        hard: 'В «Повторить» пока нет блюд. Отметьте их в каталоге.',
+        studied: 'В «Знаю» пока нет блюд. Отметьте их в каталоге.',
+        sets: 'В сетах нет блюд.',
+        rolls: 'В роллах нет блюд.'
       };
-      els.quizEmpty.textContent = messages[quizScope] || 'Нет блюд с фото для теста.';
+      els.quizEmpty.textContent = messages[quizScope] || 'Нет блюд для тренировки.';
       return;
     }
 
@@ -497,9 +517,13 @@
     quizOptions = buildOptions(quizCurrent);
     quizAnswered = false;
 
-    // Render
-    els.quizImage.src = quizCurrent.image;
-    els.quizImage.alt = 'Фото блюда: ' + quizCurrent.name;
+    // Render ingredients list
+    const ingredients = parseIngredients(quizCurrent.description);
+    els.quizIngredientsList.innerHTML = ingredients.map(ing => `
+      <li>${escapeHtml(ing)}</li>
+    `).join('');
+
+    // Render options
     els.answers.innerHTML = quizOptions.map((opt, i) => `
       <button type="button" class="answer" data-index="${i}" data-correct="${opt.id === quizCurrent.id}">
         ${escapeHtml(opt.name)}

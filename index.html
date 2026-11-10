@@ -4,8 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#10100f">
-  <meta name="description" content="Неофициальный тренажёр меню: изучайте состав и узнавайте блюда по фото.">
-  <title>Суши — тренажёр меню</title>
+  <meta name="description" content="Неофициальный тренажёр меню «Почтальон суши» Смоленск: изучайте состав, запоминайте названия и тренируйтесь угадывать блюдо по ингредиентам.">
+  <title>Почтальон суши Смоленск — тренажёр меню</title>
+  <link rel="icon" type="image/webp" href="./images/0c43c589515d0604e93f.webp">
   <link rel="stylesheet" href="./style.css">
   <script src="./app.js" defer></script>
 </head>
@@ -29,7 +30,7 @@
     </section>
     <p id="storage-notice" class="notice" role="status" hidden></p>
     <div class="toolbar">
-      <div class="tabs" role="group" aria-label="Режим обучения"><button id="catalog-tab" class="tab active" type="button" aria-pressed="true">Каталог</button><button id="quiz-tab" class="tab" type="button" aria-pressed="false">Тест по фото <span aria-hidden="true">↗</span></button></div>
+      <div class="tabs" role="group" aria-label="Режим обучения"><button id="catalog-tab" class="tab active" type="button" aria-pressed="true">Каталог</button><button id="quiz-tab" class="tab" type="button" aria-pressed="false">Тренировка по составу <span aria-hidden="true">↗</span></button></div>
       <label class="toggle"><input id="hard-only" type="checkbox"><span>Только трудные</span></label>
     </div>
     <section id="loading" class="empty" role="status">Загружаем меню…</section>
@@ -41,10 +42,21 @@
       <p id="catalog-empty" class="empty" hidden>Ничего не найдено. Попробуйте другой запрос, категорию или выключите «Только трудные».</p>
     </section>
     <section id="quiz" aria-labelledby="quiz-title" hidden>
-      <div class="section-heading"><div><p class="eyebrow">ПРОВЕРЬТЕ СЕБЯ</p><h2 id="quiz-title">Что на фотографии?</h2></div><span id="quiz-score" class="muted"></span></div>
-       <div class="quiz-filters" role="group" aria-label="Что проверять"><span class="quiz-filter-label">Проверять:</span><button type="button" class="quiz-filter active" data-quiz-scope="all" aria-pressed="true">Всё меню</button><button type="button" class="quiz-filter" data-quiz-scope="rolls" aria-pressed="false">Только роллы</button><button type="button" class="quiz-filter" data-quiz-scope="sets" aria-pressed="false">Только сеты</button><button type="button" class="quiz-filter" data-quiz-scope="studied" aria-pressed="false">Знаю</button><button type="button" class="quiz-filter" data-quiz-scope="hard" aria-pressed="false">Повторить</button></div>
+      <div class="section-heading"><div><p class="eyebrow">ТРЕНИРОВКА ПО СОСТАВУ</p><h2 id="quiz-title">Угадай блюдо по ингредиентам</h2></div><span id="quiz-score" class="muted"></span></div>
+      <div class="quiz-filters" role="group" aria-label="Что тренировать"><span class="quiz-filter-label">Пул:</span><button type="button" class="quiz-filter active" data-quiz-scope="all" aria-pressed="true">Всё меню</button><button type="button" class="quiz-filter" data-quiz-scope="rolls" aria-pressed="false">Только роллы</button><button type="button" class="quiz-filter" data-quiz-scope="sets" aria-pressed="false">Только сеты</button><button type="button" class="quiz-filter" data-quiz-scope="studied" aria-pressed="false">Знаю</button><button type="button" class="quiz-filter" data-quiz-scope="hard" aria-pressed="false">Повторить</button></div>
       <p id="quiz-empty" class="empty" hidden></p>
-      <div id="quiz-content" class="quiz-layout"><div class="quiz-photo"><img id="quiz-image" alt="Блюдо, название которого нужно угадать"></div><div class="quiz-panel"><p class="muted">Выберите одно название</p><div id="answers" class="answers"></div><p id="quiz-feedback" class="feedback" role="status" aria-live="polite"></p><button id="next" class="primary" type="button" hidden>Следующее блюдо →</button></div></div>
+      <div id="quiz-content" class="quiz-layout">
+        <div class="quiz-ingredients" aria-label="Состав блюда">
+          <h3 id="quiz-ingredients-title">Состав:</h3>
+          <ul id="quiz-ingredients-list" class="ingredients-list"></ul>
+        </div>
+        <div class="quiz-panel">
+          <p class="muted">Выберите название блюда</p>
+          <div id="answers" class="answers"></div>
+          <p id="quiz-feedback" class="feedback" role="status" aria-live="polite"></p>
+          <button id="next" class="primary" type="button" hidden>Следующее блюдо →</button>
+        </div>
+      </div>
     </section>
     <p id="announcement" class="sr-only" role="status" aria-live="polite"></p>
   </main>
