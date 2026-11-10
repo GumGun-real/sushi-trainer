@@ -11,6 +11,11 @@
 .sets-intro{margin:-8px 0 20px;font-size:14px;line-height:1.6}.sets-list{display:grid;gap:10px}.set-card{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}.set-card[open]{border-color:#5a4032}.set-summary{display:flex;align-items:center;gap:14px;padding:12px 16px;cursor:pointer;list-style:none;min-height:78px}.set-summary::-webkit-details-marker{display:none}.set-summary:hover{background:var(--surface2)}.set-thumb{width:58px;height:58px;object-fit:cover;border-radius:7px;background:var(--surface2);flex:0 0 auto}.set-summary-text{display:grid;gap:5px;flex:1;min-width:0}.set-summary-text strong{font:700 15px Manrope,sans-serif}.set-summary-text>span{font-size:12px;color:var(--muted)}.set-chevron{font-size:23px;color:var(--orange2);transition:transform .2s}.set-card[open] .set-chevron{transform:rotate(180deg)}.set-content{border-top:1px solid var(--line);padding:14px 18px 18px}.set-roll-count{font-size:11px;color:var(--orange2);font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin:0 0 10px}.set-rolls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 22px;margin:0;padding:0;list-style:none}.set-rolls li{font-size:13px;line-height:1.45;padding-left:16px;position:relative}.set-rolls li::before{content:'•';position:absolute;left:0;color:var(--orange)}
 @media(max-width:500px){.set-summary{gap:10px;padding:10px}.set-thumb{width:48px;height:48px}.set-summary-text strong{font-size:13px}.set-rolls{grid-template-columns:1fr;gap:7px}.set-content{padding:12px}}
 
+/* Quiz photo */
+.quiz-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+.quiz-photo{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px;margin:0 0 18px;border:1px solid var(--line);background:var(--surface2)}
+.quiz-photo[hidden]{display:none}
+
 /* Set detail view */
 .set-detail-image{display:block;width:min(100%,560px);max-height:360px;object-fit:cover;border-radius:12px;margin:0 0 18px;border:1px solid var(--line)}
 .set-detail-rolls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 22px;margin:16px 0 0;padding:0;list-style:none}

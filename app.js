@@ -45,6 +45,7 @@
     els.quizContent = document.getElementById('quiz-content');
     els.quizIngredientsTitle = document.getElementById('quiz-ingredients-title');
     els.quizIngredientsList = document.getElementById('quiz-ingredients-list');
+    els.quizPhoto = document.getElementById('quiz-photo');
     els.answers = document.getElementById('answers');
     els.quizFeedback = document.getElementById('quiz-feedback');
     els.nextBtn = document.getElementById('next');
@@ -667,6 +668,18 @@
     // Build options: correct + 3 distractors
     quizOptions = buildOptions(quizCurrent);
     quizAnswered = false;
+
+    // Render roll photo (hidden when the item has no safe local image)
+    const photo = safeImagePath(quizCurrent.image);
+    if (photo) {
+      els.quizPhoto.src = photo;
+      els.quizPhoto.alt = 'Фото: ' + quizCurrent.name;
+      els.quizPhoto.hidden = false;
+    } else {
+      els.quizPhoto.removeAttribute('src');
+      els.quizPhoto.alt = '';
+      els.quizPhoto.hidden = true;
+    }
 
     // Render ingredients list
     const ingredients = parseIngredients(quizCurrent.description);
