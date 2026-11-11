@@ -21,6 +21,7 @@
   let activeTab = 'catalog';
   let quizPool = [];
   let quizCurrent = null;
+  let quizLastId = null;
   let quizOptions = [];
   let quizAnswered = false;
   let quizStats = { correct: 0, total: 0 };
@@ -136,9 +137,15 @@
   }
 
   function safeImagePath(value) {
-    // Only allow local WebP assets; menu data must never turn into an external URL.
-    const path = String(value == null ? '' : value).replace(/\\\\/g, '/');
-    return /^images\/[a-zA-Z0-9_-]+\.webp$/.test(path) ? './' + path : '';
+    // Support both bundled assets and the restaurant's original product-photo URLs.
+    const path = String(value == null ? '' : value).trim().replace(/\\\\/g, '/');
+    if (/^images\/[a-zA-Z0-9_-]+\.webp$/.test(path)) return './' + path;
+    try {
+      const url = new URL(path, window.location.href);
+      return url.protocol === 'https:' ? url.href : '';
+    } catch (_) {
+      return '';
+    }
   }
 
   function shuffle(array) {
@@ -251,8 +258,24 @@
     els.quizTab.addEventListener('click', () => switchTab('quiz'));
 
     // Set detail navigation
+
+    // Clickable roll names inside set detail (delegated)
+    if (els.setDetailRolls) {
+      els.setDetailRolls.addEventListener('click', (event) => {
+        const btn = event.target.closest('[data-roll-id]');
+        if (!btn) return;
+        openRollFromSet(btn.dataset.rollId);
+      });
+    }
+
+    // Return from set detail to the set list.
     els.backToSets && els.backToSets.addEventListener('click', () => {
+      if (els.setDetail) {
+        delete els.setDetail.dataset.open;
+        els.setDetail.hidden = true;
+      }
       switchTab('sets');
+      if (els.setsView) els.setsView.hidden = false;
       announce('Возврат к списку сетов');
     });
 
@@ -332,6 +355,7 @@
     els.quiz.hidden = tab !== 'quiz';
 
     if (tab === 'quiz') {
+      quizLastId = null;
       renderQuiz();
       announce('Режим теста. Угадайте блюдо по ингредиентам.');
     } else if (tab === 'sets') {
@@ -447,13 +471,43 @@
     } else {
       els.setDetailEmpty.hidden = true;
       els.setDetailRolls.hidden = false;
-      els.setDetailRolls.innerHTML = rolls.map(roll => `<li class="set-detail-roll">${escapeHtml(roll)}</li>`).join('');
+      els.setDetailRolls.innerHTML = rolls.map(roll => {
+        // Find the matching catalog item for this roll name (case‑insensitive, trimmed)
+        const item = allItems.find(i => i.name && String(i.name).trim().toLowerCase() === roll.trim().toLowerCase());
+        const rollId = item ? item.id : '';
+        const dataAttr = rollId ? ` data-roll-id="${escapeHtml(rollId)}"` : '';
+        return rollId
+          ? `<li><button type="button" class="set-detail-roll"${dataAttr}>${escapeHtml(roll)}</button></li>`
+          : `<li class="set-detail-roll">${escapeHtml(roll)}</li>`;
+      }).join('');
     }
     els.setDetail.dataset.open = 'true';
     els.setDetail.hidden = false;
     els.setsView.hidden = true;
     announce('Состав сета «' + set.name + '»');
     document.getElementById('main').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function openRollFromSet(rollId) {
+    const roll = allItems.find(item => String(item.id) === String(rollId));
+    if (!roll) return;
+
+    // Open the catalog and bring the corresponding dish card into view.
+    switchTab('catalog');
+    currentCategory = 'all';
+    searchQuery = '';
+    hardOnly = false;
+    if (els.hardOnlyToggle) els.hardOnlyToggle.checked = false;
+    if (els.search) els.search.value = '';
+    renderCategories();
+    renderCatalog();
+    const card = document.getElementById('card-' + roll.id);
+    if (card) {
+      card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      card.classList.add('highlight-card');
+      window.setTimeout(() => card.classList.remove('highlight-card'), 1800);
+    }
+    announce('Блюдо «' + roll.name + '» в каталоге');
   }
 
   function startSetQuiz(setId) {
@@ -657,13 +711,26 @@
 
   function nextQuizQuestion() {
     if (quizPool.length === 0) {
-      renderQuiz();
-      return;
+      quizPool = getQuizPool();
+      if (quizPool.length === 0) {
+        renderQuiz();
+        return;
+      }
+      // A one-item pool is valid (e.g. a set-specific quiz): repeat it
+      // instead of treating it as an empty pool. Multi-item pools avoid an
+      // immediate repeat when possible.
+      if (quizPool.length > 1 && quizPool[0].id === quizLastId) {
+        quizPool.push(quizPool.shift());
+      }
     }
 
-    // Pick random item
-    const idx = Math.floor(Math.random() * quizPool.length);
+    // Avoid repeating the immediately previous item when possible.
+    let idx = Math.floor(Math.random() * quizPool.length);
+    if (quizPool.length > 1 && quizPool[idx].id === quizLastId) {
+      idx = (idx + 1 + Math.floor(Math.random() * (quizPool.length - 1))) % quizPool.length;
+    }
     quizCurrent = quizPool.splice(idx, 1)[0];
+    quizLastId = quizCurrent.id;
 
     // Build options: correct + 3 distractors
     quizOptions = buildOptions(quizCurrent);

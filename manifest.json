@@ -1,0 +1,19 @@
+{
+  "name": "Суши — тренажёр меню",
+  "short_name": "Суши-тренажёр",
+  "description": "Неофициальный тренажёр меню «Почтальон суши» Смоленск: учите состав сетов и роллов, тренируйтесь с телефона.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#10100f",
+  "theme_color": "#10100f",
+  "lang": "ru",
+  "icons": [
+    {
+      "src": "./images/0c43c589515d0604e93f.webp",
+      "sizes": "any",
+      "type": "image/webp",
+      "purpose": "any"
+    }
+  ]
+}
