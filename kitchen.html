@@ -33,7 +33,7 @@ html,body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.4 system-ui,
 nav{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:center;gap:8px;background:var(--bg);border-top:2px solid var(--line);padding:6px 10px calc(6px + env(safe-area-inset-bottom,0px))}
 nav button{flex:1;max-width:240px;background:none;border:2px solid transparent;border-radius:12px;font-size:24px;color:inherit;cursor:pointer;padding:4px}
 nav button.on{border-color:var(--b);background:var(--selbg)}nav small{display:block;font-size:12px;font-weight:700}
-.row{display:flex;gap:12px;align-items:center}.end{text-align:center;padding-top:40px}
+.sub{border:2px solid var(--line);border-radius:12px;padding:8px 10px}summary{cursor:pointer;font-weight:700;list-style-position:inside}.sub[open]{background:var(--selbg)}.sub>summary+*{margin-top:8px}.row{display:flex;gap:12px;align-items:center}.end{text-align:center;padding-top:40px}
 input{width:100%;box-sizing:border-box;padding:12px;border:2px solid var(--line);border-radius:12px;background:var(--card);color:inherit;font:16px inherit;font-family:inherit}
 </style></head><body><div id="app"></div>
 <script>
@@ -92,9 +92,11 @@ const lessonH=()=>{if(L.end){const d=L.h<=0;return`<div class="end"><div style="
  return`<div class="top"><button class="x" onclick="L=null;draw()">✕</button><div class="bar"><i style="width:${Math.round(100*L.done/L.n)}%"></i></div><span>❤️${L.h}</span></div>
  <h2>${esc(q.head)}</h2>${m?'<p class="mut">Выбери все подходящие</p>':''}${q.pic}<div class="${m?'grid':'list'}">${opts}</div>
  <div class="fb ${L.chk?(L.good?'ok':'bad'):''}"><div>${L.chk?`<b>${L.good?'Верно! 🎉':'Не совсем'}</b>${L.good?'':`<span>Правильно: ${esc(rt)}</span>`}<button class="btn ${L.good?'':'red'}" onclick="next()">Дальше</button>`:`<button class="btn" ${L.sel.length?'':'disabled'} onclick="check()">Проверить</button>`}</div></div>`};
+const rollH=r=>`<div class="row">${pic(r,72)}<div><b>${esc(r.n)}</b><div>${[...new Set(r.ing.map(E))].join(' ')}</div></div></div>${esc(r.ing.join(', '))}${r.cap?`<div class="mut">Шапка: ${E(r.cap.split(',')[0])} ${esc(r.cap)}</div>`:''}`;
+const itemH=i=>{const r=R.find(r=>r.k==kk(i.replace(/\(.*$/,'')));return r?`<details class="sub"><summary>${E(r.ing[0]||'')} ${esc(i)}</summary>${rollH(r)}</details>`:`<div class="sub"><summary style="list-style:none">${esc(i)}</summary></div>`};
 const listH=()=>{const q=kk(qry);let h='';
- if(sc!='sets')h+=R.filter(r=>(sc=='all'||r.cat==sc)&&(!q||r.k.includes(q))).map(r=>`<div class="card"><div class="row">${pic(r,72)}<div><b>${esc(r.n)}</b><div>${[...new Set(r.ing.map(E))].join(' ')}</div></div></div>${esc(r.ing.join(', '))}${r.cap?`<div class="mut">Шапка: ${E(r.cap.split(',')[0])} ${esc(r.cap)}</div>`:''}</div>`).join('');
- if(sc=='all'||sc=='sets')h+=SE.filter(s=>!q||kk(s.n).includes(q)).map(s=>`<div class="card"><div class="row">${s.img?pic(s,72):'🍱'}<b>Сет ${esc(s.n)}</b></div><br>${esc(s.items.join(', '))}${Object.keys(s.rice).length?`<div class="mut">Рис: ${Object.entries(s.rice).map(([k,v])=>`${esc(k)} — ${esc(v)}`).join('; ')}</div>`:''}</div>`).join('');
+ if(sc!='sets')h+=R.filter(r=>(sc=='all'||r.cat==sc)&&(!q||r.k.includes(q))).map(r=>`<div class="card">${rollH(r)}</div>`).join('');
+ if(sc=='all'||sc=='sets')h+=SE.filter(s=>!q||kk(s.n).includes(q)).map(s=>`<details class="card"><summary><span class="row">${s.img?pic(s,72):'🍱'}<b>Сет ${esc(s.n)}</b></span><span class="mut">${s.items.length} поз. · нажми, чтобы раскрыть</span></summary><div class="list" style="margin-top:10px">${s.items.map(itemH).join('')}</div>${Object.keys(s.rice).length?`<div class="mut" style="margin-top:8px">Рис: ${Object.entries(s.rice).map(([k,v])=>`${esc(k)} — ${esc(v)}`).join('; ')}</div>`:''}</details>`).join('');
  return h||'<p class="mut">Ничего не найдено</p>'};
 const studyH=()=>`<div class="top"><span>📖 Меню</span></div><input placeholder="Поиск ролла или сета" value="${esc(qry)}" oninput="qry=this.value;$('#lst').innerHTML=listH()">
  <div class="chips">${[['all','Всё'],...Object.entries(CATS),['sets','Сеты']].map(([k,v])=>`<button class="chip ${sc==k?'on':''}" onclick="sc='${k}';draw()">${v}</button>`).join('')}</div><div class="list" id="lst">${listH()}</div>`;
