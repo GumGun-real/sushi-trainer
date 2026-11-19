@@ -1,5 +1,5 @@
 // sw.js — офлайн-кэш для тренажёра меню
-const CACHE_NAME = 'sushi-trainer-v2';
+const CACHE_NAME = 'sushi-trainer-v3';
 const CORE_ASSETS = [
   './',
   './index.html',
@@ -29,6 +29,15 @@ self.addEventListener('activate', (event) => {
 // Стратегия: сначала кэш, потом сеть; при сети кладём ответ в кэш (чтобы картинки тоже закэшировались)
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+  const u = new URL(event.request.url);
+  if (event.request.mode === 'navigate' || /\.(html|js|css|json)$/.test(u.pathname)) {
+    // код и данные: сначала сеть, чтобы обновления доходили сразу
+    event.respondWith(fetch(event.request).then((r) => {
+      if (r && r.ok && u.origin === location.origin) { const c = r.clone(); caches.open(CACHE_NAME).then((ca) => ca.put(event.request, c)); }
+      return r;
+    }).catch(() => caches.match(event.request)));
+    return;
+  }
   event.respondWith(
     caches.match(event.request).then((cached) => {
       const networkFetch = fetch(event.request).then((response) => {
