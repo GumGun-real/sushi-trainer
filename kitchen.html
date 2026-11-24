@@ -69,13 +69,18 @@ function qPhoto(){const r=pick(RS().filter(r=>r.img),1)[0];if(!r)return;const o=
 function qOut(){const r=pick(RS().filter(r=>r.out.length),1)[0];if(!r)return;const s=r.out.join(', ');
  const o=sh([s,...pick([...new Set(R.map(x=>x.out.join(', ')).filter(x=>x&&x!=s))],3)]);
  return{t:'o',head:`Во что обваливается «${r.n}»?`,pic:pic(r,110),o:o.map(x=>({t:x,e:E(x.split(',')[0])})),a:[o.indexOf(s)],id:'u'+r.n}}
+function qSetFull(){const s=pick(SE.filter(s=>s.items.length>=2),1)[0];
+ const c=pick(s.items.map((_,j)=>j),5).map(j=>({t:s.items[j],e:E((R.find(r=>r.n==s.m[j])||{ing:['']}).ing[0]||'')}));
+ const d=pick(R.filter(r=>!s.k.some(k=>k.startsWith(r.k)||r.k.startsWith(k))),4).map(r=>({t:r.n,e:E(r.ing[0]||'')}));
+ const o=sh([...c,...d]);
+ return{t:'m',head:`Что входит в сет «${s.n}»?`,pic:pic(s,110),o,a:o.map((x,i)=>c.includes(x)?i:-1).filter(i=>i>=0),id:'sf'+s.n}}
 function qSet(){const s=pick(SE,1)[0],ok=pick(s.items,1)[0];
  const bad=pick(R.filter(r=>!s.k.some(k=>k.startsWith(r.k)||r.k.startsWith(k))).map(r=>r.n),3),o=sh([ok,...bad]);
  return{t:'o',head:`Что входит в сет «${s.n}»?`,pic:pic(s,110),o:o.map(t=>({t})),a:[o.indexOf(ok)],id:'s'+s.n}}
 function qSetOf(){const r=pick(RS().filter(r=>r.sets.length),1)[0];if(!r)return;const ok=pick(r.sets,1)[0];
  const o=sh([ok,...pick(SE.filter(s=>!s.k.some(k=>k.startsWith(r.k)||r.k.startsWith(k))),3)]);
  return{t:'o',head:`В каком сете есть «${r.n}»?`,pic:pic(r,110),o:o.map(s=>({t:'Сет '+s.n})),a:[o.indexOf(ok)],id:'o'+r.n}}
-const TY={out:[qOut],mix:[qComp,qOut,qCap,qRev,qPhoto,qSet,qSetOf],photo:[qPhoto],comp:[qComp],cap:[qCap],rev:[qRev],set:[qSet,qSetOf]};
+const TY={out:[qOut],setfull:[qSetFull],mix:[qComp,qOut,qCap,qRev,qPhoto,qSetFull,qSet,qSetOf],photo:[qPhoto],comp:[qComp],cap:[qCap],rev:[qRev],set:[qSetFull,qSet,qSetOf]};
 function gen(m){const qs=[],seen=new Set();for(let t=0;t<80&&qs.length<10;t++){const q=pick(TY[m],1)[0]();if(q&&!seen.has(q.id)){seen.add(q.id);qs.push(q)}}return qs}
 function start(m){L={mode:m,qs:gen(m),h:5,xp:0,ok:0,tot:0,done:0,sel:[],chk:false};L.n=L.qs.length;draw()}
 function pk(i){if(L.chk)return;const q=L.qs[0];L.sel=q.t=='m'?(L.sel.includes(i)?L.sel.filter(x=>x!=i):[...L.sel,i]):[i];draw()}
@@ -83,7 +88,7 @@ function check(){const q=L.qs[0],a=[...q.a].sort().join(),s=[...L.sel].sort().jo
 function next(){const q=L.qs.shift();if(L.good)L.done++;else if(!q.r){q.r=1;L.qs.push(q)}else L.done++;
  if(L.h<=0||!L.qs.length){L.end=1;const t=new Date().toDateString();if(S.day!=t){S.streak=S.day==new Date(Date.now()-864e5).toDateString()?S.streak+1:1;S.day=t}S.xp+=L.xp;save()}
  L.sel=[];L.chk=false;draw()}
-const homeH=()=>{const M=[['mix','🎲','Всё вперемешку','Все типы вопросов'],['comp','🥒','Состав','Что внутри ролла'],['out','🥢','Обсыпка снаружи','Во что обваливается'],['cap','🧀','Шапки','Чем украшать'],['photo','📷','Угадай по фото','Какой это ролл'],['rev','🧩','Угадай по составу','По ингредиентам'],['set','🍱','Сеты','Что в каком сете']];
+const homeH=()=>{const M=[['mix','🎲','Всё вперемешку','Все типы вопросов'],['comp','🥒','Состав','Что внутри ролла'],['out','🥢','Обсыпка снаружи','Во что обваливается'],['cap','🧀','Шапки','Чем украшать'],['photo','📷','Угадай по фото','Какой это ролл'],['rev','🧩','Угадай по составу','По ингредиентам'],['setfull','🍱','Состав сета','Выбери все роллы сета'],['set','🔎','Сеты: быстро','Что входит и в каком сете']];
  return`<div class="top"><span>🍣 Тренажёр кухни</span><span>🔥${S.streak} ⭐${S.xp}</span></div><p class="mut">Урок: 10 вопросов, 5 сердец. Ошибки вернутся в конце. <a href="./" style="color:var(--b)">← к каталогу</a></p>
  <div class="chips">${[['all','Все роллы'],...Object.entries(CATS)].map(([k,v])=>`<button class="chip ${cat==k?'on':''}" onclick="cat='${k}';draw()">${v}</button>`).join('')}</div>
  <div class="list">${M.map(m=>`<button class="opt mode" onclick="start('${m[0]}')"><span class="e">${m[1]}</span><span><b>${m[2]}</b><br><span class="mut">${m[3]}</span></span></button>`).join('')}</div>`};
