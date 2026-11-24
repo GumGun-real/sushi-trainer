@@ -101,10 +101,11 @@ const lessonH=()=>{if(L.end){const d=L.h<=0;return`<div class="end"><div style="
  <h2>${esc(q.head)}</h2>${m?'<p class="mut">Выбери все подходящие</p>':''}${q.pic}<div class="${m?'grid':'list'}">${opts}</div>
  <div class="fb ${L.chk?(L.good?'ok':'bad'):''}"><div>${L.chk?`<b>${L.good?'Верно! 🎉':'Не совсем'}</b>${L.good?'':`<span>Правильно: ${esc(rt)}</span>`}<button class="btn ${L.good?'':'red'}" onclick="next()">Дальше</button>`:`<button class="btn" ${L.sel.length?'':'disabled'} onclick="check()">Проверить</button>`}</div></div>`};
 const al=r=>(r.note?` <i class="mut" style="font-weight:400;font-size:.85em">${r.note}</i>`:'')+(r.ing.length==2&&r.ing.includes('сыр')&&r.ing.includes('огурец')&&!/филадел/i.test(r.n)?' <i class="mut" style="font-weight:400;font-size:.85em">Филадельфия</i>':'');
-const rollH=r=>`<div class="row">${pic(r,72)}<div><b>${esc(r.n)}</b>${al(r)}<div>${[...new Set(r.ing.map(E))].join(' ')}</div></div></div>${esc(r.ing.join(', '))}${r.cap?`<div class="mut">Шапка: ${E(r.cap.split(',')[0])} ${esc(r.cap)}</div>`:''}`;
+const al2=r=>r.ing.length==3&&r.ing.includes('сыр')&&r.ing.includes('креветка')&&r.ing.includes('огурец')&&r.n!='Эби'?' <i class="mut" style="font-weight:400;font-size:.85em">Эби</i>':'';
+const rollH=r=>`<div class="row">${pic(r,72)}<div><b>${esc(r.n)}</b>${al(r)}${al2(r)}<div>${[...new Set(r.ing.map(E))].join(' ')}</div></div></div>${esc(r.ing.join(', '))}${r.cap?`<div class="mut">Шапка: ${E(r.cap.split(',')[0])} ${esc(r.cap)}</div>`:''}`;
 const itemH=(i,n)=>{const r=R.find(r=>r.n==n);if(!r)return`<div class="sub"><summary style="list-style:none">${esc(i)}</summary></div>`;
  const k=kk(i.replace(/\(.*$/,'')),v={...r,ing:r.ing.map(x=>x.includes('/')?(x.split('/').find(a=>k.includes(kk(a).slice(0,5)))||x):x),img:D.ipics[k]||r.img};
- return`<details class="sub"><summary>${E(v.ing[0]||'')} ${esc(i)}${al(r)}</summary>${rollH(v)}</details>`};
+ return`<details class="sub"><summary>${E(v.ing[0]||'')} ${esc(i)}${al(r)}${al2(r)}</summary>${rollH(v)}</details>`};
 const listH=()=>{const q=kk(qry);let h='';
  if(sc!='sets')h+=R.filter(r=>(sc=='all'||r.cat==sc)&&(!q||r.k.includes(q))).map(r=>`<div class="card">${rollH(r)}</div>`).join('');
  if(sc=='all'||sc=='sets')h+=SE.filter(s=>!q||kk(s.n).includes(q)).map(s=>`<details class="card"><summary><span class="row">${s.img?pic(s,72):'🍱'}<b>Сет ${esc(s.n)}</b></span><span class="mut">${s.items.length} поз. · нажми, чтобы раскрыть</span></summary><div class="list" style="margin-top:10px">${s.items.map((x,j)=>itemH(x,s.m[j])).join('')}</div>${Object.keys(s.rice).length?`<div class="mut" style="margin-top:8px">Рис: ${Object.entries(s.rice).map(([k,v])=>`${esc(k)} — ${esc(v)}`).join('; ')}</div>`:''}</details>`).join('');
