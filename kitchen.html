@@ -70,7 +70,7 @@ function qOut(){const r=pick(RS().filter(r=>r.out.length),1)[0];if(!r)return;con
  const o=sh([s,...pick([...new Set(R.map(x=>x.out.join(', ')).filter(x=>x&&x!=s))],3)]);
  return{t:'o',head:`Во что обваливается «${r.n}»?`,pic:pic(r,110),o:o.map(x=>({t:x,e:E(x.split(',')[0])})),a:[o.indexOf(s)],id:'u'+r.n}}
 function qSetFull(){const s=pick(SE.filter(s=>s.items.length>=2),1)[0];
- const c=pick(s.items.map((_,j)=>j),5).map(j=>({t:s.items[j],e:E((R.find(r=>r.n==s.m[j])||{ing:['']}).ing[0]||'')}));
+ const c=sh(s.items.map((_,j)=>j).filter(j=>s.items.indexOf(s.items[j])==j)).map(j=>({t:s.items[j],e:E((R.find(r=>r.n==s.m[j])||{ing:['']}).ing[0]||'')}));
  const d=pick(R.filter(r=>!s.k.some(k=>k.startsWith(r.k)||r.k.startsWith(k))),4).map(r=>({t:r.n,e:E(r.ing[0]||'')}));
  const o=sh([...c,...d]);
  return{t:'m',head:`Что входит в сет «${s.n}»?`,pic:pic(s,110),o,a:o.map((x,i)=>c.includes(x)?i:-1).filter(i=>i>=0),id:'sf'+s.n}}
