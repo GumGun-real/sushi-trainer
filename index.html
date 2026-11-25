@@ -49,13 +49,13 @@ const R=D.rolls,SE=D.sets;
 SE.forEach(s=>s.k=s.items.map((i,j)=>s.m[j]?kk(s.m[j]):kk(i.replace(/\(.*$/,''))));
 R.forEach(r=>{r.k=kk(r.n);r.sets=SE.filter(s=>s.k.includes(r.k));r.sig=[...r.ing].map(kk).sort().join()});
 const POOL=[...new Set(R.flatMap(r=>r.ing))];
-let S;try{S=JSON.parse(localStorage.getItem('sushi1'))}catch(e){}S=S||{xp:0,streak:0,day:''};
+let S;try{S=JSON.parse(localStorage.getItem('sushi1'))}catch(e){}S=S||{xp:0,streak:0,day:''};S.k=S.k||{};
 const save=()=>{try{localStorage.setItem('sushi1',JSON.stringify(S))}catch(e){}};
 let T='home',cat='all',L=null,qry='',sc='all';
 function pic(r,z){if(r.img)return`<div class="pic"><img src="${r.img}" width="${z}" height="${z}" style="border-radius:16px;object-fit:cover;max-width:100%" alt=""></div>`;const e=[...new Set(r.ing.map(E))].slice(0,3);
  const P={1:[[60,74]],2:[[42,74],[78,74]],3:[[60,52],[40,84],[80,84]]}[e.length]||[];
  return`<div class="pic"><svg viewBox="0 0 120 120" width="${z}" height="${z}"><circle cx="60" cy="60" r="57" fill="#26313a"/><circle cx="60" cy="60" r="47" fill="#f6f1e4"/>${e.map((x,i)=>`<text x="${P[i][0]}" y="${P[i][1]}" font-size="30" text-anchor="middle">${x}</text>`).join('')}</svg></div>`}
-const inCat=r=>cat=='all'||r.cat==cat,RS=()=>R.filter(inCat);
+let F=null;const inCat=r=>cat=='all'||r.cat==cat,RS=()=>R.filter(r=>F?F.r.includes(r.n):inCat(r)),SS=()=>SE.filter(s=>F?F.s.includes(s.n):true);
 function qComp(){const r=pick(RS().filter(r=>r.ing.length>1),1)[0];if(!r)return;const c=r.ing,o=sh([...c,...pick(POOL.filter(x=>!c.includes(x)),4)]);
  return{t:'m',head:`Что в ролле «${r.n}»?`,pic:pic(r,110),o:o.map(x=>({t:x,e:E(x)})),a:o.map((x,i)=>c.includes(x)?i:-1).filter(i=>i>=0),id:'c'+r.n}}
 function qCap(){const r=pick(RS().filter(r=>r.cap&&r.cap.length<70),1)[0];if(!r)return;
@@ -69,12 +69,12 @@ function qPhoto(){const r=pick(RS().filter(r=>r.img),1)[0];if(!r)return;const o=
 function qOut(){const r=pick(RS().filter(r=>r.out.length),1)[0];if(!r)return;const s=r.out.join(', ');
  const o=sh([s,...pick([...new Set(R.map(x=>x.out.join(', ')).filter(x=>x&&x!=s))],3)]);
  return{t:'o',head:`Во что обваливается «${r.n}»?`,pic:pic(r,110),o:o.map(x=>({t:x,e:E(x.split(',')[0])})),a:[o.indexOf(s)],id:'u'+r.n}}
-function qSetFull(){const s=pick(SE.filter(s=>s.items.length>=2),1)[0];
+function qSetFull(){const s=pick(SS().filter(s=>s.items.length>=2),1)[0];if(!s)return;
  const c=sh(s.items.map((_,j)=>j).filter(j=>s.items.indexOf(s.items[j])==j)).map(j=>({t:s.items[j],e:E((R.find(r=>r.n==s.m[j])||{ing:['']}).ing[0]||'')}));
  const d=pick(R.filter(r=>!s.k.some(k=>k.startsWith(r.k)||r.k.startsWith(k))),4).map(r=>({t:r.n,e:E(r.ing[0]||'')}));
  const o=sh([...c,...d]);
  return{t:'m',head:`Что входит в сет «${s.n}»?`,pic:pic(s,110),o,a:o.map((x,i)=>c.includes(x)?i:-1).filter(i=>i>=0),id:'sf'+s.n}}
-function qSet(){const s=pick(SE,1)[0],ok=pick(s.items,1)[0];
+function qSet(){const s=pick(SS(),1)[0];if(!s)return;const ok=pick(s.items,1)[0];
  const bad=pick(R.filter(r=>!s.k.some(k=>k.startsWith(r.k)||r.k.startsWith(k))).map(r=>r.n),3),o=sh([ok,...bad]);
  return{t:'o',head:`Что входит в сет «${s.n}»?`,pic:pic(s,110),o:o.map(t=>({t})),a:[o.indexOf(ok)],id:'s'+s.n}}
 function qSetOf(){const r=pick(RS().filter(r=>r.sets.length),1)[0];if(!r)return;const ok=pick(r.sets,1)[0];
@@ -82,16 +82,16 @@ function qSetOf(){const r=pick(RS().filter(r=>r.sets.length),1)[0];if(!r)return;
  return{t:'o',head:`В каком сете есть «${r.n}»?`,pic:pic(r,110),o:o.map(s=>({t:'Сет '+s.n})),a:[o.indexOf(ok)],id:'o'+r.n}}
 const TY={out:[qOut],setfull:[qSetFull],mix:[qComp,qOut,qCap,qRev,qPhoto,qSetFull,qSet,qSetOf],photo:[qPhoto],comp:[qComp],cap:[qCap],rev:[qRev],set:[qSetFull,qSet,qSetOf]};
 function gen(m){const qs=[],seen=new Set();for(let t=0;t<80&&qs.length<10;t++){const q=pick(TY[m],1)[0]();if(q&&!seen.has(q.id)){seen.add(q.id);qs.push(q)}}return qs}
-function start(m){L={mode:m,qs:gen(m),h:5,xp:0,ok:0,tot:0,done:0,sel:[],chk:false};L.n=L.qs.length;draw()}
+function start(m){L={mode:m,qs:gen(m),h:5,xp:0,ok:0,tot:0,done:0,sel:[],chk:false};L.n=L.qs.length;if(!L.n){alert('Мало данных для вопросов');F=null;L=null}draw()}
 function pk(i){if(L.chk)return;const q=L.qs[0];L.sel=q.t=='m'?(L.sel.includes(i)?L.sel.filter(x=>x!=i):[...L.sel,i]):[i];draw()}
-function check(){const q=L.qs[0],a=[...q.a].sort().join(),s=[...L.sel].sort().join();L.good=a==s;L.chk=true;L.tot++;if(L.good){L.ok++;L.xp+=10}else L.h--;draw()}
+function check(){const q=L.qs[0],a=[...q.a].sort().join(),s=[...L.sel].sort().join();L.good=a==s;L.chk=true;L.tot++;if(L.good){L.ok++;L.xp+=10}else L.h--;mk(q.id,L.good);draw()}
 function next(){const q=L.qs.shift();if(L.good)L.done++;else if(!q.r){q.r=1;L.qs.push(q)}else L.done++;
  if(L.h<=0||!L.qs.length){L.end=1;const t=new Date().toDateString();if(S.day!=t){S.streak=S.day==new Date(Date.now()-864e5).toDateString()?S.streak+1:1;S.day=t}S.xp+=L.xp;save()}
  L.sel=[];L.chk=false;draw()}
 const homeH=()=>{const M=[['mix','🎲','Всё вперемешку','Все типы вопросов'],['comp','🥒','Состав','Что внутри ролла'],['out','🥢','Обсыпка снаружи','Во что обваливается'],['cap','🧀','Шапки','Чем украшать'],['photo','📷','Угадай по фото','Какой это ролл'],['rev','🧩','Угадай по составу','По ингредиентам'],['setfull','🍱','Состав сета','Выбери все роллы сета'],['set','🔎','Сеты: быстро','Что входит и в каком сете']];
  return`<div class="top"><span>🍣 Тренажёр кухни</span><span>🔥${S.streak} ⭐${S.xp}</span></div><p class="mut">Урок: 10 вопросов, 5 сердец. Ошибки вернутся в конце. </p>
  <div class="chips">${[['all','Все роллы'],...Object.entries(CATS)].map(([k,v])=>`<button class="chip ${cat==k?'on':''}" onclick="cat='${k}';draw()">${v}</button>`).join('')}</div>
- <div class="list">${M.map(m=>`<button class="opt mode" onclick="start('${m[0]}')"><span class="e">${m[1]}</span><span><b>${m[2]}</b><br><span class="mut">${m[3]}</span></span></button>`).join('')}</div>`};
+ <div class="list"><button class="opt mode" onclick="learnUnknown()"><span class="e">🎯</span><span><b>Учить то, что не знаю</b><br><span class="mut">Осталось: ${R.filter(r=>!S.k['r:'+r.n]).length+SE.filter(s=>!S.k['s:'+s.n]).length}</span></span></button>${M.map(m=>`<button class="opt mode" onclick="go('${m[0]}')"><span class="e">${m[1]}</span><span><b>${m[2]}</b><br><span class="mut">${m[3]}</span></span></button>`).join('')}</div>`};
 const lessonH=()=>{if(L.end){const d=L.h<=0;return`<div class="end"><div style="font-size:72px">${d?'💔':'🎉'}</div><h2>${d?'Сердца закончились':'Урок пройден!'}</h2><p>⭐ +${L.xp} XP · точность ${L.tot?Math.round(100*L.ok/L.tot):0}%</p><button class="btn" onclick="start(L.mode)">Ещё раз</button><button class="btn ghost" onclick="L=null;draw()">Домой</button></div>`}
  const q=L.qs[0],m=q.t=='m';
  const opts=q.o.map((o,i)=>{let c='opt';if(L.chk)c+=q.a.includes(i)?' ok':L.sel.includes(i)?' bad':'';else if(L.sel.includes(i))c+=' sel';
@@ -107,12 +107,22 @@ const itemH=(i,n)=>{const r=R.find(r=>r.n==n);if(!r)return`<div class="sub"><sum
  const k=kk(i.replace(/\(.*$/,'')),v={...r,ing:r.ing.map(x=>x.includes('/')?(x.split('/').find(a=>k.includes(kk(a).slice(0,5)))||x):x),img:D.ipics[k]||r.img};
  return`<details class="sub"><summary>${E(v.ing[0]||'')} ${esc(i)}${al(r)}${al2(r)}</summary>${rollH(v)}</details>`};
 const listH=()=>{const q=kk(qry);let h='';
- if(sc!='sets')h+=R.filter(r=>(sc=='all'||r.cat==sc)&&(!q||r.k.includes(q))).map(r=>`<div class="card">${rollH(r)}</div>`).join('');
- if(sc=='all'||sc=='sets')h+=SE.filter(s=>!q||kk(s.n).includes(q)).map(s=>`<details class="card"><summary><span class="row">${s.img?pic(s,72):'🍱'}<b>Сет ${esc(s.n)}</b></span><span class="mut">${s.items.length} поз. · нажми, чтобы раскрыть</span></summary><div class="list" style="margin-top:10px">${s.items.map((x,j)=>itemH(x,s.m[j])).join('')}</div>${Object.keys(s.rice).length?`<div class="mut" style="margin-top:8px">Рис: ${Object.entries(s.rice).map(([k,v])=>`${esc(k)} — ${esc(v)}`).join('; ')}</div>`:''}</details>`).join('');
+ if(sc!='sets')h+=R.filter(r=>(sc=='all'||r.cat==sc)&&(!q||r.k.includes(q))).map(r=>`<div class="card">${rollH(r)}${act('r',R.indexOf(r))}</div>`).join('');
+ if(sc=='all'||sc=='sets')h+=SE.filter(s=>!q||kk(s.n).includes(q)).map(s=>`<details class="card"><summary><span class="row">${s.img?pic(s,72):'🍱'}<b>Сет ${esc(s.n)}</b></span><span class="mut">${s.items.length} поз. · нажми, чтобы раскрыть</span></summary><div class="list" style="margin-top:10px">${s.items.map((x,j)=>itemH(x,s.m[j])).join('')}</div>${Object.keys(s.rice).length?`<div class="mut" style="margin-top:8px">Рис: ${Object.entries(s.rice).map(([k,v])=>`${esc(k)} — ${esc(v)}`).join('; ')}</div>`:''}${act('s',SE.indexOf(s))}</details>`).join('');
  return h||'<p class="mut">Ничего не найдено</p>'};
 const studyH=()=>`<div class="top"><span>📖 Меню</span></div><input placeholder="Поиск ролла или сета" value="${esc(qry)}" oninput="qry=this.value;$('#lst').innerHTML=listH()">
  <div class="chips">${[['all','Всё'],...Object.entries(CATS),['sets','Сеты']].map(([k,v])=>`<button class="chip ${sc==k?'on':''}" onclick="sc='${k}';draw()">${v}</button>`).join('')}</div><div class="list" id="lst">${listH()}</div>`;
 const nav=()=>`<nav><button class="${T=='home'?'on':''}" onclick="T='home';draw()">🏠<small>Учиться</small></button><button class="${T=='study'?'on':''}" onclick="T='study';draw()">📖<small>Меню</small></button></nav>`;
 function draw(){$('#app').innerHTML=L?lessonH():(T=='home'?homeH():studyH())+nav();window.scrollTo(0,0)}
-draw();
+const kn=(t,i)=>!!S.k[t+':'+(t=='r'?R[i]:SE[i]).n];
+const act=(t,i)=>{const k=kn(t,i);return`<div class="row" style="margin-top:8px"><button class="chip ${k?'on':''}" onclick="tg('${t}',${i})">${k?'✅ Знаю':'⬜ Не знаю'}</button><button class="chip" onclick="${t=='r'?'focusRoll':'focusSet'}(${i})">🎯 Учить</button></div>`};
+function tg(t,i){const k=t+':'+(t=='r'?R[i]:SE[i]).n;S.k[k]?delete S.k[k]:S.k[k]=1;save();$('#lst').innerHTML=listH()}
+function go(m){F=null;start(m)}
+function focusRoll(i){F={r:[R[i].n],s:[]};start('mix')}
+function focusSet(i){const s=SE[i];F={r:s.m.filter(n=>R.some(r=>r.n==n)),s:[s.n]};start('mix')}
+function learnUnknown(){F={r:R.filter(r=>!S.k['r:'+r.n]).map(r=>r.n),s:SE.filter(s=>!S.k['s:'+s.n]).map(s=>s.n)};if(!F.r.length&&!F.s.length){F=null;alert('Всё выучено 🎉');return}start('mix')}
+function mk(id,g){const k=id.startsWith('sf')?'s:'+id.slice(2):id[0]=='s'?'s:'+id.slice(1):'r:'+id.slice(1);g?S.k[k]=1:delete S.k[k];save()}
+ draw();
+
+ 
 </script></body></html>
