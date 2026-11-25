@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Сушист на смене</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27><text y=%27.9em%27 font-size=%2790%27>🍣</text></svg>">
+<style>
+:root{--bg:#fff;--fg:#3c3c3c;--mut:#777;--card:#fff;--line:#e5e5e5;--g:#58cc02;--gd:#58a700;--r:#ff4b4b;--rd:#ea2b2b;--b:#1cb0f6;--selbg:#ddf4ff;--okbg:#d7ffb8;--badbg:#ffdfe0;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#131f24;--fg:#e8eef0;--mut:#8a9ba1;--card:#1b2b32;--line:#37464f;--selbg:#12384a;--okbg:#1d3a14;--badbg:#4a2024;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#131f24;--fg:#e8eef0;--mut:#8a9ba1;--card:#1b2b32;--line:#37464f;--selbg:#12384a;--okbg:#1d3a14;--badbg:#4a2024;color-scheme:dark}
+html,body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+#app{max-width:520px;margin:0 auto;padding:12px 14px 40px}
+a{color:var(--b);text-decoration:none}
+.top{display:flex;justify-content:space-between;align-items:center;font-weight:800;margin-bottom:8px}
+.mut{color:var(--mut)}h2{margin:8px 0}
+.btn{display:block;width:100%;padding:14px;border:0;border-radius:14px;font:800 16px inherit;font-family:inherit;text-transform:uppercase;background:var(--g);color:#fff;box-shadow:0 4px 0 var(--gd);cursor:pointer;margin-top:12px}
+.btn:disabled{background:var(--line);color:var(--mut);box-shadow:0 4px 0 var(--mut)}
+.btn.red{background:var(--r);box-shadow:0 4px 0 var(--rd)}
+.ticket{background:var(--selbg);border:2px dashed var(--b);border-radius:14px;padding:12px;text-align:center}
+.ticket b{font-size:22px;display:block}
+.bar{height:14px;background:var(--line);border-radius:8px;overflow:hidden;margin:10px 0}.bar i{display:block;height:100%;background:var(--g)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.ing{border:2px solid var(--line);border-bottom-width:4px;border-radius:14px;padding:10px 4px;background:var(--card);color:inherit;font:600 14px inherit;font-family:inherit;cursor:pointer;text-align:center}
+.ing span{display:block;font-size:28px}.ing.on{border-color:var(--b);background:var(--selbg)}
+.roll{min-height:44px;margin:10px 0;padding:8px;border-radius:12px;background:var(--card);border:2px solid var(--line);text-align:center;font-size:22px}
+.fb{padding:12px;border-radius:14px;margin-top:10px}.fb.ok{background:var(--okbg)}.fb.bad{background:var(--badbg)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.chip{border:2px solid var(--line);border-radius:20px;padding:4px 12px;background:var(--card);color:inherit;font:600 14px inherit;font-family:inherit;cursor:pointer}
+.chip.on{border-color:var(--b);background:var(--selbg)}
+.card{border:2px solid var(--line);border-radius:12px;padding:8px 12px;margin-top:8px}
+.end{text-align:center;padding-top:16px}
+</style></head><body><div id="app">Загрузка меню…</div>
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const sh=a=>[...a].sort(()=>Math.random()-.5);
+const CATS={bake:'Запечённые',tempura:'Темпурные',cold:'Холодные'};
+const EM=[[/спайс/,'🌶️'],[/унаги/,'🟤'],[/креветк/,'🦐'],[/краб/,'🦀'],[/кальмар/,'🦑'],[/тунец/,'🐟'],[/лосос|черняга|угор/,'🍣'],[/мидии/,'🦪'],[/масаг/,'🔴'],[/томаго/,'🥚'],[/сыр|чеддер/,'🧀'],[/пекинк/,'🥬'],[/огур|корнишон/,'🥒'],[/помидор|томат|черри/,'🍅'],[/бекон/,'🥓'],[/куриц/,'🍗'],[/свинин/,'🥩'],[/гриб/,'🍄'],[/тыкв/,'🎃'],[/перец/,'🫑'],[/чука/,'🥗'],[/лук/,'🧅']];
+const E=s=>{s=s.toLowerCase();for(const[r,e]of EM)if(r.test(s))return e;return'🍥'};
+let R,POOL,G=null,tm=null,cfg={cat:'all',unk:false},hi=0;
+try{hi=+localStorage.getItem('gh')||0}catch(e){}
+const known=()=>{try{return(JSON.parse(localStorage.getItem('sushi1'))||{}).k||{}}catch(e){return{}}};
+
+async function load(){
+  let D;
+  for(const u of ['./index.html','./kitchen.html']){
+    try{const t=await(await fetch(u)).text();const m=t.match(/const D=(\{[\s\S]*?\});\s*const \$=/);if(m){D=JSON.parse(m[1]);break}}catch(e){}
+  }
+  if(!D){$('#app').innerHTML='<p>Не получилось загрузить меню. Открой страницу с интернетом один раз.</p>';return}
+  R=D.rolls;POOL=[...new Set(R.flatMap(r=>r.ing))];draw();
+}
+function start(){
+  let p=R.filter(r=>cfg.cat=='all'||r.cat==cfg.cat);
+  if(cfg.unk){const k=known();p=p.filter(r=>!k['r:'+r.n])}
+  if(p.length<3){alert('В этом режиме мало роллов');return}
+  G={p,lives:3,score:0,combo:0,n:0,miss:[],r:null};order();
+}
+function order(){
+  const lim=Math.min(8,2+Math.floor(G.n/3));
+  let c=G.p.filter(r=>r.ing.length<=lim);if(!c.length)c=G.p;
+  const pool=c.filter(r=>r!=G.r);const src=pool.length?pool:c;
+  const r=src[Math.floor(Math.random()*src.length)];
+  G.r=r;G.sel=[];G.st='play';G.T=G.t=Math.max(12,30-G.n*0.8);
+  const dis=sh(POOL.filter(x=>!r.ing.includes(x))).slice(0,Math.max(4,12-r.ing.length));
+  G.shelf=sh([...r.ing,...dis]);
+  clearInterval(tm);tm=setInterval(tick,100);draw();
+}
+function tick(){
+  G.t-=0.1;const b=$('#bar');if(b)b.style.width=Math.max(0,100*G.t/G.T)+'%';
+  if(G.t<=0)submit(true);
+}
+function tog(i){
+  if(G.st!='play')return;const x=G.shelf[i];
+  G.sel=G.sel.includes(x)?G.sel.filter(y=>y!=x):[...G.sel,x];draw();
+}
+function submit(timeout){
+  if(G.st!='play')return;clearInterval(tm);
+  const ok=!timeout&&G.sel.length==G.r.ing.length&&G.r.ing.every(x=>G.sel.includes(x));
+  G.st='fb';G.ok=ok;G.timeout=!!timeout;
+  if(ok){G.combo++;G.score+=10+Math.ceil(G.t)+G.combo*2;G.n++}
+  else{G.combo=0;G.lives--;if(!G.miss.includes(G.r))G.miss.push(G.r)}
+  draw();
+  if(ok)setTimeout(()=>{if(G&&G.st=='fb'&&G.ok)next()},700);
+}
+function next(){
+  if(G.lives<=0){G.st='end';if(G.score>hi){hi=G.score;try{localStorage.setItem('gh',hi)}catch(e){}}draw()}
+  else order();
+}
+function quit(){clearInterval(tm);G=null;draw()}
+
+function menuH(){
+  return`<div class="top"><a href="./">← к тренажёру</a><span>🏆 ${hi}</span></div>
+<h2>🍣 Сушист на смене</h2>
+<p class="mut">Приходит заказ: собери ролл из ингредиентов на полке, пока не вышло время. Рис и нори уже есть. Ошибка отнимает сердце, ошибаются все, потом показываем правильный состав. Роллы по ходу усложняются.</p>
+<div class="chips">${[['all','Все'],...Object.entries(CATS)].map(([k,v])=>`<button class="chip ${cfg.cat==k?'on':''}" onclick="cfg.cat='${k}';draw()">${v}</button>`).join('')}<button class="chip ${cfg.unk?'on':''}" onclick="cfg.unk=!cfg.unk;draw()">Только не отмеченные «Знаю»</button></div>
+<button class="btn" onclick="start()">Начать смену</button>`;
+}
+function gameH(){
+  const hearts='❤️'.repeat(Math.max(0,G.lives))+'🖤'.repeat(3-Math.max(0,G.lives));
+  const top=`<div class="top"><button class="chip" onclick="quit()">✕</button><span>${hearts}</span><span>⭐ ${G.score}${G.combo>1?' 🔥'+G.combo:''}</span></div>`;
+  if(G.st=='end')return`<div class="end"><div style="font-size:72px">${G.score>=hi&&G.score>0?'🏆':'🍣'}</div><h2>Смена окончена</h2><p>Очки: <b>${G.score}</b> · собрано роллов: <b>${G.n}</b> · рекорд: ${hi}</p>
+${G.miss.length?'<p class="mut" style="text-align:left">Повтори:</p>'+G.miss.map(r=>`<div class="card" style="text-align:left"><b>${esc(r.n)}</b><br>${esc(r.ing.join(', '))}</div>`).join(''):'<p>Без ошибок!</p>'}
+<button class="btn" onclick="start()">Ещё смена</button><button class="btn red" onclick="quit()">В меню</button></div>`;
+  const r=G.r,play=G.st=='play';
+  const shelf=G.shelf.map((x,i)=>`<button class="ing ${G.sel.includes(x)?'on':''}" onclick="tog(${i})"><span>${E(x)}</span>${esc(x)}</button>`).join('');
+  const fb=play?'':`<div class="fb ${G.ok?'ok':'bad'}"><b>${G.ok?'Заказ готов! 🎉':G.timeout?'Не успел ⏰':'Не то 😬'}</b>${G.ok?'':`<div>Правильно: ${esc(r.ing.join(', '))}</div><button class="btn red" onclick="next()">${G.lives<=0?'Итог':'Дальше'}</button>`}</div>`;
+  return top+`<div class="ticket">🧾 Заказ<b>${esc(r.name||r.n)}</b><span class="mut">${CATS[r.cat]} · ингредиентов: ${r.ing.length}</span></div>
+<div class="bar"><i id="bar" style="width:${Math.max(0,100*G.t/G.T)}%"></i></div>
+<div class="roll">${G.sel.length?G.sel.map(E).join(' '):'<span class="mut" style="font-size:15px">Рис + нори. Добавь начинку</span>'}</div>
+<div class="grid">${shelf}</div>
+${play?`<button class="btn" ${G.sel.length?'':'disabled'} onclick="submit()">Свернуть ролл</button>`:fb}`;
+}
+function draw(){$('#app').innerHTML=G?gameH():menuH()}
+load();
+</script></body></html>
