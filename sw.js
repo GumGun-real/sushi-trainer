@@ -1,12 +1,8 @@
 // sw.js — офлайн-кэш для тренажёра меню
-const CACHE_NAME = 'sushi-trainer-v3';
+const CACHE_NAME = 'sushi-trainer-v4';
 const CORE_ASSETS = [
   './',
   './index.html',
-  './kitchen.html',
-  './style.css',
-  './app.js',
-  './menu.json',
   './manifest.json'
 ];
 
